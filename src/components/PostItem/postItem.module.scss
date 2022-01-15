@@ -1,0 +1,44 @@
+.postsContainer{
+  margin-bottom: 3rem;
+  h1{
+    font-weight: bold;
+    font-size: 1.75rem;
+    line-height: 2,125rem;
+    text-align: justify;
+    letter-spacing: -0.5px;
+    color: var(--gray-100);
+    margin-bottom: 0.5rem;
+  }
+
+  p{
+    font-size: 1,125rem;
+    line-height: 1,375rem;
+    color: var(--gray-200);
+  }
+}
+
+.infoContainer{
+  display: flex;
+  margin-top: 1.5rem;
+}
+
+.calendarContainer{
+  display: flex;
+  margin-right: 1.5rem;
+  p{
+    margin-left: 0.5rem;
+    font-size: 0,875rem;
+    line-height: 1,0625rem;
+    color: var(--gray-400);
+  }
+}
+
+.authorContainer{
+  display: flex;
+  p{
+    margin-left: 0.5rem;
+    font-size: 0,875rem;
+    line-height: 1,0625rem;
+    color: var(--gray-400);
+  }
+}
