@@ -1,10 +1,8 @@
 import Head from 'next/head';
 import { GetStaticProps } from 'next';
 import Prismic from '@prismicio/client';
-import { format } from 'date-fns';
-import ptBR from 'date-fns/locale/pt-BR';
-
-import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useCallback, useState } from 'react';
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
@@ -32,40 +30,26 @@ interface HomeProps {
 }
 
 export default function Home({ postsPagination }: HomeProps): JSX.Element {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [nextPage, setNextPage] = useState('');
+  const [posts, setPosts] = useState<PostPagination>(postsPagination);
 
-  useEffect(() => {
-    setPosts(postsPagination.results);
-    setNextPage(postsPagination.next_page);
-  }, [postsPagination.results, postsPagination.next_page]);
+  const loadMorePosts = useCallback(async () => {
+    const data = await fetch(posts.next_page).then(response => response.json());
 
-  function handlePagination(): void {
-    fetch(nextPage)
-      .then(res => res.json())
-      .then(data => {
-        const formattedData = data.results.map(post => {
-          return {
-            uid: post.uid,
-            first_publication_date: format(
-              new Date(post.first_publication_date),
-              'd MMM Y',
-              {
-                locale: ptBR,
-              }
-            ),
-            data: {
-              title: post.data.title,
-              subtitle: post.data.subtitle,
-              author: post.data.author,
-            },
-          };
-        });
+    const results = data.results.map(post => ({
+      uid: post.uid,
+      first_publication_date: post.first_publication_date,
+      data: {
+        title: post.data.title,
+        subtitle: post.data.subtitle,
+        author: post.data.author,
+      },
+    }));
 
-        setPosts([...posts, ...formattedData]);
-        setNextPage(data.next_page);
-      });
-  }
+    setPosts({
+      results: [...posts.results, ...results],
+      next_page: data.next_page ?? '',
+    });
+  }, [posts]);
 
   return (
     <>
@@ -74,13 +58,15 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
       </Head>
       <div className={commonStyles.container}>
         <div className={styles.postsContainer}>
-          {posts.map(post => (
-            <a href={`post/${post.uid}`} key={post.uid}>
-              <PostItem post={post} />
-            </a>
+          {posts.results.map(post => (
+            <Link href={`post/${post.uid}`} key={post.uid}>
+              <a>
+                <PostItem post={post} />
+              </a>
+            </Link>
           ))}
-          {nextPage && (
-            <button type="button" onClick={handlePagination}>
+          {posts.next_page && (
+            <button type="button" onClick={loadMorePosts}>
               Carregar mais posts
             </button>
           )}
@@ -103,13 +89,7 @@ export const getStaticProps: GetStaticProps = async () => {
   const posts = postsResponse.results.map(post => {
     return {
       uid: post.uid,
-      first_publication_date: format(
-        new Date(post.first_publication_date),
-        'd MMM Y',
-        {
-          locale: ptBR,
-        }
-      ),
+      first_publication_date: post.first_publication_date,
       data: {
         title: post.data.title,
         subtitle: post.data.subtitle,
@@ -118,14 +98,12 @@ export const getStaticProps: GetStaticProps = async () => {
     };
   });
 
-  const postsPagination = {
-    next_page: postsResponse.next_page,
-    results: posts,
-  };
-
   return {
     props: {
-      postsPagination,
+      postsPagination: {
+        next_page: postsResponse.next_page,
+        results: posts,
+      },
     },
   };
 };

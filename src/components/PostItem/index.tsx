@@ -1,4 +1,6 @@
 import { FiCalendar, FiUser } from 'react-icons/fi';
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
 
 import styles from './postItem.module.scss';
 
@@ -21,7 +23,11 @@ export default function PostItem(item: PostItemProps) {
       <div className={styles.infoContainer}>
         <div className={styles.calendarContainer}>
           <FiCalendar />
-          <p>{item.post.first_publication_date}</p>
+          <p>
+            {format(new Date(item.post.first_publication_date), 'd MMM Y', {
+              locale: ptBR,
+            })}
+          </p>
         </div>
         <div className={styles.authorContainer}>
           <FiUser />
