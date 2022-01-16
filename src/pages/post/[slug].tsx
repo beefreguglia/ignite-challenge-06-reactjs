@@ -118,17 +118,22 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   const response = await prismic.getByUID('posts', String(slug), {});
   const post = {
+    uid: response.uid,
     first_publication_date: response.first_publication_date,
+    last_publication_date: response.last_publication_date,
     data: {
       title: response.data.title,
+      subtitle: response.data.subtitle,
+      author: response.data.author,
       banner: {
         url: response.data.banner.url,
       },
-      author: response.data.author,
-      content: response.data.content.map(item => ({
-        heading: item.heading,
-        body: item.body,
-      })),
+      content: response.data.content.map(content => {
+        return {
+          heading: content.heading,
+          body: [...content.body],
+        };
+      }),
     },
   };
 
