@@ -24,7 +24,7 @@ export default function PostItem(item: PostItemProps) {
         <div className={styles.calendarContainer}>
           <FiCalendar />
           <p>
-            {format(new Date(item.post.first_publication_date), 'd MMM Y', {
+            {format(new Date(item.post.first_publication_date), 'dd MMM yyyy', {
               locale: ptBR,
             })}
           </p>
