@@ -4,6 +4,7 @@ import Prismic from '@prismicio/client';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
+import { useEffect, useState } from 'react';
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
@@ -30,7 +31,42 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-export default function Home({ postsPagination }: HomeProps) {
+export default function Home({ postsPagination }: HomeProps): JSX.Element {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [nextPage, setNextPage] = useState('');
+
+  useEffect(() => {
+    setPosts(postsPagination.results);
+    setNextPage(postsPagination.next_page);
+  }, [postsPagination.results, postsPagination.next_page]);
+
+  function handlePagination(): void {
+    fetch(nextPage)
+      .then(res => res.json())
+      .then(data => {
+        const formattedData = data.results.map(post => {
+          return {
+            uid: post.uid,
+            first_publication_date: format(
+              new Date(post.first_publication_date),
+              'd MMM Y',
+              {
+                locale: ptBR,
+              }
+            ),
+            data: {
+              title: post.data.title,
+              subtitle: post.data.subtitle,
+              author: post.data.author,
+            },
+          };
+        });
+
+        setPosts([...posts, ...formattedData]);
+        setNextPage(data.next_page);
+      });
+  }
+
   return (
     <>
       <Head>
@@ -38,12 +74,16 @@ export default function Home({ postsPagination }: HomeProps) {
       </Head>
       <div className={commonStyles.container}>
         <div className={styles.postsContainer}>
-          {postsPagination?.results.map(post => (
-            <a href={post.uid} key={post.uid}>
+          {posts.map(post => (
+            <a href={`post/${post.uid}`} key={post.uid}>
               <PostItem post={post} />
             </a>
           ))}
-          <p>Carregar mais posts</p>
+          {nextPage && (
+            <button type="button" onClick={handlePagination}>
+              Carregar mais posts
+            </button>
+          )}
         </div>
       </div>
     </>
